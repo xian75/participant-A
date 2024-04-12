@@ -1,0 +1,94 @@
+# db-persistent-volume.yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: participant-a-postgres-data-persisent-volume
+  labels:
+    type: local
+spec:
+  claimRef:
+    namespace: default
+    name: participant-a-postgres-data-persisent-volume-claim
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /run/desktop/mnt/host/c/home/k8s/participant-a-postgres-data
+---
+# db-persistent-volume-claim.yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: participant-a-postgres-data-persisent-volume-claim
+spec:
+  volumeName: participant-a-postgres-data-persisent-volume
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# db-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: participant-a-db
+spec:
+  selector:
+    matchLabels:
+      app: participant-a-db
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: participant-a-db
+    spec:
+      containers:
+        - name: participant-a-db
+          image: postgres:14
+          ports:
+            - containerPort: 5432
+              name: par-a-db-port
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: participant-a-postgres-data-storage
+            - mountPath: "/docker-entrypoint-initdb.d/participant-a.sql"
+              subPath: participant-a.sql
+              name: sql-command
+          env:
+            - name: POSTGRES_DB
+              value: db_a
+            - name: POSTGRES_USER
+              value: username_a
+            - name: POSTGRES_PASSWORD
+              value: password_a
+          #resources:
+          #  limits:
+          #    memory: 500M
+          #    cpu: 500m
+      volumes:
+        - name: participant-a-postgres-data-storage
+          persistentVolumeClaim:
+            claimName: participant-a-postgres-data-persisent-volume-claim
+        - name: sql-command
+          configMap:
+            name: participant-a-db-init
+---
+# db-service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: participant-a-db-service
+spec:
+  type: NodePort
+  selector:
+    app: participant-a-db
+  ports:
+    - name: par-a-db-port
+      protocol: TCP
+      port: 5432 # porta esterna del servizio in Docker
+      targetPort: 5432 # porta interna del servizio in Docker
+      nodePort: 30432 # porta esterna del cluster in Kubernetes (l'unica esposta su localhost)

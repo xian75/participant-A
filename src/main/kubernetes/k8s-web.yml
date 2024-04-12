@@ -1,0 +1,50 @@
+# web-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: participant-a-web
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: participant-a-web
+  template:
+    metadata:
+      labels:
+        app: participant-a-web
+    spec:
+      containers:
+      - name: participant-a-web
+        image: noah/participant-a
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9095
+          name: par-a-web-port
+        env:
+          - name: POSTGRES_DB
+            value: db_a
+          - name: POSTGRES_USER
+            value: username_a
+          - name: POSTGRES_PASSWORD
+            value: password_a
+        #resources:
+        #  limits:
+        #    memory: 250M
+        #    cpu: 500m
+---
+# web-service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: participant-a-web-service
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: participant-a-web
+  ports:
+  - name: par-a-web-port
+    port: 9981 # porta esterna del servizio in Docker
+    targetPort: 9095 # porta interna del servizio in Docker
+    nodePort: 30981 # porta esterna del cluster in Kubernetes (l'unica esposta su localhost)
