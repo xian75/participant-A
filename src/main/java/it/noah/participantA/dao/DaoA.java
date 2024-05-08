@@ -43,6 +43,11 @@ public class DaoA {
                 .chain(e -> daoUtils.remove(log, conn, uuid, expire, e, optlock)));
     }
 
+    public Uni<EntityA> logicallyDeleteA(String uuid, OffsetDateTime expire, Long id, Long optlock) {
+        return client.withTransaction(conn -> daoUtils.find(log, conn, new EntityA(), id)
+                .chain(e -> daoUtils.logicallyRemove(log, conn, uuid, expire, e, optlock)));
+    }
+
     public Uni<EntityA> updateA(String uuid, OffsetDateTime expire, Long id, Long optlock, String titlePrefix) {
         return client.withTransaction(conn -> daoUtils.find(log, conn, new EntityA(), id)
                 .chain((oldA) -> {
@@ -53,6 +58,19 @@ public class DaoA {
                         newA.setCreatetime(OffsetDateTime.now());
                     }
                     return daoUtils.merge(log, conn, uuid, expire, oldA, newA, optlock);
+                }));
+    }
+
+    public Uni<EntityA> updateArchivingA(String uuid, OffsetDateTime expire, Long id, Long optlock, String titlePrefix) {
+        return client.withTransaction(conn -> daoUtils.find(log, conn, new EntityA(), id)
+                .chain((oldA) -> {
+                    EntityA newA = null;
+                    if (oldA != null) {
+                        newA = oldA.clone();
+                        newA.setTitle(titlePrefix + newA.getTitle());
+                        newA.setCreatetime(OffsetDateTime.now());
+                    }
+                    return daoUtils.mergeArchiving(log, conn, uuid, expire, oldA, newA, optlock);
                 }));
     }
 

@@ -36,8 +36,16 @@ public class FacadeA {
         return dao.deleteA(uuid, expire, id, optlock);
     }
 
+    public Uni<EntityA> logicallyDeleteA(String uuid, OffsetDateTime expire, Long id, Long optlock) {
+        return dao.logicallyDeleteA(uuid, expire, id, optlock);
+    }
+
     public Uni<EntityA> updateA(String uuid, OffsetDateTime expire, Long id, Long optlock, String titlePrefix) {
         return dao.updateA(uuid, expire, id, optlock, titlePrefix);
+    }
+
+    public Uni<EntityA> updateArchivingA(String uuid, OffsetDateTime expire, Long id, Long optlock, String titlePrefix) {
+        return dao.updateArchivingA(uuid, expire, id, optlock, titlePrefix);
     }
 
     public Uni<List<ObjectA>> getAllA() {

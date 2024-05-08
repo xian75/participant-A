@@ -75,9 +75,15 @@ public class ResourceA implements IParticipantServer {
             case "DELETE_ABC":
                 ABCEventDetails details2 = jsoner.getObject(data, ABCEventDetails.class);
                 return facade.deleteA(uuid, expire, details2.getEntityAId(), details2.getOptlock()).replaceWith(details2);
-            case "UPDATE_ABC":
+            case "LOGICAL_DELETE_ABC":
                 ABCEventDetails details3 = jsoner.getObject(data, ABCEventDetails.class);
-                return facade.updateA(uuid, expire, details3.getEntityAId(), details3.getOptlock(), details3.getTitlePrefix()).replaceWith(details3);
+                return facade.logicallyDeleteA(uuid, expire, details3.getEntityAId(), details3.getOptlock()).replaceWith(details3);
+            case "UPDATE_ABC":
+                ABCEventDetails details4 = jsoner.getObject(data, ABCEventDetails.class);
+                return facade.updateA(uuid, expire, details4.getEntityAId(), details4.getOptlock(), details4.getTitlePrefix()).replaceWith(details4);
+            case "UPDATE_ARCHIVING_ABC":
+                ABCEventDetails details5 = jsoner.getObject(data, ABCEventDetails.class);
+                return facade.updateArchivingA(uuid, expire, details5.getEntityAId(), details5.getOptlock(), details5.getTitlePrefix()).replaceWith(details5);
             case "READ_ALL_AB":
                 return facade.getAllA().map(objects -> {
                     List<ABCouple> items = new ArrayList<>();
@@ -87,10 +93,10 @@ public class ResourceA implements IParticipantServer {
                     return details;
                 });
             case "READ_ONE_ABC":
-                SingleABCEventDetails details4 = jsoner.getObject(data, SingleABCEventDetails.class);
-                return facade.getA(details4.getEntityAId()).map(object -> {
-                    details4.setA(object);
-                    return details4;
+                SingleABCEventDetails details6 = jsoner.getObject(data, SingleABCEventDetails.class);
+                return facade.getA(details6.getEntityAId()).map(object -> {
+                    details6.setA(object);
+                    return details6;
                 });
             default:
                 return throwNoOperationFound(operation);
